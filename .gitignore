@@ -1,0 +1,15 @@
+bin/
+obj/
+dist/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+*.db
+*.db-wal
+*.db-shm
+*.msi
+*.nupkg
+*.snupkg
