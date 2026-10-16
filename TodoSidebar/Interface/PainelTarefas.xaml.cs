@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -10,12 +11,6 @@ namespace TodoSidebar.Interface;
 
 public partial class PainelTarefas : UserControl
 {
-    static readonly Brush Fundo = new SolidColorBrush(Color.FromRgb(0x1C, 0x1C, 0x1C));
-    static readonly Brush Texto = new SolidColorBrush(Color.FromRgb(0xE8, 0xE8, 0xE8));
-    static readonly Brush Secundario = new SolidColorBrush(Color.FromRgb(0x9A, 0x9A, 0x9A));
-    static readonly Brush Concluida = new SolidColorBrush(Color.FromRgb(0x6E, 0x6E, 0x6E));
-    static readonly Brush Borda = new SolidColorBrush(Color.FromRgb(0x2A, 0x2A, 0x2A));
-
     readonly Banco _banco;
     readonly InicioAutomatico _inicio = new();
     string? _edicao;
@@ -136,16 +131,20 @@ public partial class PainelTarefas : UserControl
     bool Serve(string titulo) =>
         !Filtrando() || titulo.Contains(Termo(), StringComparison.OrdinalIgnoreCase);
 
-    TextBlock Rotulo(string texto) => new()
+    Brush Pincel(string chave) => (Brush)FindResource(chave);
+
+    TextBlock Rotulo(string texto)
     {
-        Text = texto,
-        Foreground = Secundario,
-        Margin = new Thickness(0, 12, 0, 6)
-    };
+        var rotulo = new TextBlock { Text = texto };
+        rotulo.SetResourceReference(StyleProperty, "Secao");
+        return rotulo;
+    }
 
     UIElement LinhaTarefa(Tarefa tarefa, string? nomeProjeto, bool filtrando)
     {
         var linha = new DockPanel { MinHeight = 36, LastChildFill = true };
+        if (tarefa.ProjetoId != null)
+            linha.Margin = new Thickness(24, 0, 0, 0);
         if (_confirmarTarefa == tarefa.Id)
         {
             linha.Children.Add(Botao("Sim", () => Executar(() =>
@@ -157,8 +156,9 @@ public partial class PainelTarefas : UserControl
             linha.Children.Add(new TextBlock
             {
                 Text = "Excluir esta tarefa?",
-                Foreground = Texto,
-                VerticalAlignment = VerticalAlignment.Center
+                Foreground = Pincel("Texto"),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap
             });
             return EnvolverTarefa(linha, tarefa, filtrando);
         }
@@ -172,7 +172,7 @@ public partial class PainelTarefas : UserControl
         caixa.Click += (_, _) => Executar(() => _banco.DefinirConclusao(tarefa.Id, caixa.IsChecked == true));
         DockPanel.SetDock(caixa, Dock.Left);
         linha.Children.Add(caixa);
-        linha.Children.Add(Botao("Excluir", () => { _confirmarTarefa = tarefa.Id; _confirmarProjeto = null; Redesenhar(); }, Dock.Right));
+        linha.Children.Add(Botao("Excluir", () => { _confirmarTarefa = tarefa.Id; _confirmarProjeto = null; Redesenhar(); }, Dock.Right, "\uE74D"));
 
         if (_edicao == "t:" + tarefa.Id)
         {
@@ -190,7 +190,7 @@ public partial class PainelTarefas : UserControl
         bloco.Children.Add(new TextBlock
         {
             Text = tarefa.Titulo,
-            Foreground = tarefa.Concluida ? Concluida : Texto,
+            Foreground = Pincel(tarefa.Concluida ? "TextoConcluido" : "Texto"),
             TextDecorations = tarefa.Concluida ? TextDecorations.Strikethrough : null,
             TextWrapping = TextWrapping.Wrap
         });
@@ -198,8 +198,8 @@ public partial class PainelTarefas : UserControl
             bloco.Children.Add(new TextBlock
             {
                 Text = nomeProjeto == null ? "Avulsa" : "Projeto: " + nomeProjeto,
-                Foreground = Secundario,
-                FontSize = 11
+                Foreground = Pincel("TextoSecundario"),
+                FontSize = 12
             });
         bloco.MouseLeftButtonDown += (_, e) =>
         {
@@ -221,9 +221,12 @@ public partial class PainelTarefas : UserControl
         if (_confirmarProjeto == projeto.Id)
             return ConfirmacaoProjeto(projeto);
 
-        linha.Children.Add(Botao(projeto.Expandido ? "Recolher" : "Expandir", () => Executar(() =>
-            _banco.DefinirExpandido(projeto.Id, !projeto.Expandido)), Dock.Left));
-        linha.Children.Add(Botao("Excluir", () => { _confirmarProjeto = projeto.Id; _confirmarTarefa = null; Redesenhar(); }, Dock.Right));
+        linha.Children.Add(Botao(
+            projeto.Expandido ? "Recolher" : "Expandir",
+            () => Executar(() => _banco.DefinirExpandido(projeto.Id, !projeto.Expandido)),
+            Dock.Left,
+            projeto.Expandido ? "\uE70D" : "\uE76C"));
+        linha.Children.Add(Botao("Excluir", () => { _confirmarProjeto = projeto.Id; _confirmarTarefa = null; Redesenhar(); }, Dock.Right, "\uE74D"));
 
         if (_edicao == "p:" + projeto.Id)
         {
@@ -240,7 +243,7 @@ public partial class PainelTarefas : UserControl
         var nome = new TextBlock
         {
             Text = projeto.Nome,
-            Foreground = Texto,
+            Foreground = Pincel("Texto"),
             VerticalAlignment = VerticalAlignment.Center,
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(8, 0, 0, 0)
@@ -259,11 +262,11 @@ public partial class PainelTarefas : UserControl
     UIElement ConfirmacaoProjeto(Projeto projeto)
     {
         var resumo = _banco.ResumoExclusao(projeto.Id);
-        var painel = new StackPanel { Margin = new Thickness(0, 8, 0, 8) };
+        var painel = new StackPanel();
         painel.Children.Add(new TextBlock
         {
             Text = TextoExclusao(resumo),
-            Foreground = Texto,
+            Foreground = Pincel("Texto"),
             TextWrapping = TextWrapping.Wrap
         });
         var botoes = new DockPanel { Margin = new Thickness(0, 8, 0, 0) };
@@ -274,7 +277,14 @@ public partial class PainelTarefas : UserControl
         }), Dock.Right));
         botoes.Children.Add(Botao("Cancelar", () => { _confirmarProjeto = null; Redesenhar(); }, Dock.Right));
         painel.Children.Add(botoes);
-        return painel;
+        return new Border
+        {
+            Background = Pincel("SuperficieConfirmacao"),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(10),
+            Margin = new Thickness(0, 8, 0, 8),
+            Child = painel
+        };
     }
 
     static string TextoExclusao(ResumoExclusao r)
@@ -334,13 +344,8 @@ public partial class PainelTarefas : UserControl
     {
         var campo = new TextBox
         {
-            MinHeight = 36,
             Margin = new Thickness(24, 4, 0, 8),
-            Padding = new Thickness(8, 6, 8, 6),
-            Background = Fundo,
-            Foreground = Secundario,
-            BorderBrush = Borda,
-            CaretBrush = Texto,
+            Foreground = Pincel("TextoSecundario"),
             Text = "Nova tarefa neste projeto"
         };
         campo.GotKeyboardFocus += Campo_GotFocus;
@@ -357,15 +362,26 @@ public partial class PainelTarefas : UserControl
         return campo;
     }
 
-    Button Botao(string texto, Action acao, Dock dock)
+    Button Botao(string texto, Action acao, Dock dock, string? glifo = null)
     {
-        var botao = new Button
+        var botao = new Button { Margin = new Thickness(4, 0, 0, 0) };
+        botao.ToolTip = texto;
+        AutomationProperties.SetName(botao, texto);
+        if (glifo != null)
         {
-            Content = texto,
-            MinHeight = 36,
-            Margin = new Thickness(4, 0, 0, 0),
-            Padding = new Thickness(10, 6, 10, 6)
-        };
+            botao.Style = (Style)FindResource("BotaoCabecalho");
+            botao.Content = new TextBlock
+            {
+                FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                FontSize = 14,
+                Text = glifo,
+                IsHitTestVisible = false
+            };
+        }
+        else
+            botao.Content = texto;
+        if (texto == "Excluir")
+            botao.SetResourceReference(Control.ForegroundProperty, "Perigo");
         DockPanel.SetDock(botao, dock);
         botao.Click += (_, _) => acao();
         return botao;
@@ -375,13 +391,7 @@ public partial class PainelTarefas : UserControl
     {
         var campo = new TextBox
         {
-            Text = valor,
-            MinHeight = 36,
-            Padding = new Thickness(8, 6, 8, 6),
-            Background = Fundo,
-            Foreground = Texto,
-            BorderBrush = Borda,
-            CaretBrush = Texto
+            Text = valor
         };
         campo.KeyDown += (_, e) =>
         {
@@ -423,7 +433,7 @@ public partial class PainelTarefas : UserControl
         if (sender is TextBox campo && campo.Text == Convert.ToString(campo.Tag))
         {
             campo.Text = "";
-            campo.Foreground = Texto;
+            campo.Foreground = Pincel("Texto");
         }
     }
 
@@ -433,12 +443,12 @@ public partial class PainelTarefas : UserControl
             MostrarDica(campo);
     }
 
-    static void MostrarDica(TextBox campo)
+    void MostrarDica(TextBox campo)
     {
         if (campo.Text.Trim().Length != 0)
             return;
         campo.Text = Convert.ToString(campo.Tag) ?? "";
-        campo.Foreground = Secundario;
+        campo.Foreground = Pincel("TextoSecundario");
     }
 
     void Executar(Action acao)

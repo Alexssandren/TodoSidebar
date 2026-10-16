@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Threading;
@@ -150,8 +151,11 @@ public partial class JanelaSidebar : Window
         });
     }
 
-    void Janela_MouseEnter(object sender, MouseEventArgs e) =>
+    void Janela_MouseEnter(object sender, MouseEventArgs e)
+    {
+        PintarAlca(true);
         AplicarFase(FaseSidebar.AoEntrar(_fase), false);
+    }
 
     void Janela_MouseLeave(object sender, MouseEventArgs e)
     {
@@ -161,8 +165,12 @@ public partial class JanelaSidebar : Window
             return;
         }
 
+        PintarAlca(false);
         AplicarFase(FaseSidebar.AoSair(_fase, false), false);
     }
+
+    void PintarAlca(bool destaque) =>
+        AlcaVisual.SetResourceReference(Border.BackgroundProperty, destaque ? "BordaFoco" : "Borda");
 
     void Janela_MouseUp(object sender, MouseButtonEventArgs e)
     {

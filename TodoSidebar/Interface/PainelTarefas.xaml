@@ -1,29 +1,27 @@
 <UserControl x:Class="TodoSidebar.Interface.PainelTarefas"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#121212"
-             Foreground="#E8E8E8"
+             Background="{DynamicResource Superficie}"
+             Foreground="{DynamicResource Texto}"
              FontFamily="Segoe UI"
              FontSize="13">
     <DockPanel>
-        <TextBox x:Name="CampoBusca" DockPanel.Dock="Top" MinHeight="36" Margin="0,0,0,8" Padding="8,6"
-                 Background="#1C1C1C" Foreground="#E8E8E8" BorderBrush="#2A2A2A" CaretBrush="#E8E8E8"
+        <TextBox x:Name="CampoBusca" DockPanel.Dock="Top" Margin="0,0,0,8"
                  ToolTip="Buscar tarefas"
                  TextChanged="CampoBusca_TextChanged"/>
-        <TextBlock x:Name="Aviso" DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="#C9A227" Margin="0,0,0,8" Visibility="Collapsed"/>
+        <TextBlock x:Name="Aviso" DockPanel.Dock="Top" TextWrapping="Wrap"
+                   Foreground="{DynamicResource Aviso}" Margin="0,0,0,8" Visibility="Collapsed"/>
         <StackPanel DockPanel.Dock="Bottom">
-            <TextBox x:Name="CampoAvulsa" MinHeight="36" Margin="0,8,0,0" Padding="8,6"
-                     Background="#1C1C1C" Foreground="#E8E8E8" BorderBrush="#2A2A2A" CaretBrush="#E8E8E8"
+            <TextBox x:Name="CampoAvulsa" Margin="0,8,0,0"
                      ToolTip="Nova tarefa avulsa"
                      KeyDown="CampoAvulsa_KeyDown"/>
-            <TextBox x:Name="CampoProjeto" MinHeight="36" Margin="0,8,0,0" Padding="8,6"
-                     Background="#1C1C1C" Foreground="#E8E8E8" BorderBrush="#2A2A2A" CaretBrush="#E8E8E8"
+            <TextBox x:Name="CampoProjeto" Margin="0,8,0,0"
                      ToolTip="Novo projeto"
                      KeyDown="CampoProjeto_KeyDown"/>
             <CheckBox x:Name="InicioWindows" Content="Iniciar com o Windows"
-                      Foreground="#E8E8E8" Margin="0,10,0,0" Click="InicioWindows_Click"/>
-            <TextBlock x:Name="AvisoInicio" TextWrapping="Wrap" Foreground="#C9A227"
-                       FontSize="12" Margin="0,4,0,0" Visibility="Collapsed"/>
+                      Margin="0,10,0,0" Click="InicioWindows_Click"/>
+            <TextBlock x:Name="AvisoInicio" TextWrapping="Wrap" Foreground="{DynamicResource Aviso}"
+                       Style="{DynamicResource Secundario}" Margin="0,4,0,0" Visibility="Collapsed"/>
         </StackPanel>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="Lista" />

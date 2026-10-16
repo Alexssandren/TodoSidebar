@@ -10,7 +10,6 @@ readonly record struct Alvo(string Tipo, string? ProjetoId, string Id);
 static class ListaArrastavel
 {
     const string Formato = "TodoSidebar.Alvo";
-    static readonly Brush Destino = new SolidColorBrush(Color.FromRgb(0xC9, 0xA2, 0x27));
 
     public static Border Envolver(UIElement conteudo, Alvo alvo, bool podeArrastar, Action<Alvo, Alvo, bool> soltar)
     {
@@ -18,11 +17,11 @@ static class ListaArrastavel
         {
             Child = conteudo,
             Background = Brushes.Transparent,
-            BorderBrush = Destino,
             BorderThickness = new Thickness(0),
             Tag = alvo,
             AllowDrop = podeArrastar
         };
+        borda.SetResourceReference(Border.BorderBrushProperty, "Arraste");
         if (!podeArrastar)
             return borda;
 
